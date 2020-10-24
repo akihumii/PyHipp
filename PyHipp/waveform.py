@@ -106,9 +106,9 @@ class Waveform(DPT.DPObject):
             # this will be called by PanGUI.main to return two values: 
             # first value is the total number of items to pan through, 
             # second value is the current index of the item to plot
-            # .........................................
-            # ..................code...................
-            # .........................................
+            if plot_type == 'Channel':
+                return self.numSets, i
+
             
             return  # please return two items here: <total-number-of-items-to-plot>, <current-item-index-to-plot>
                 
@@ -131,10 +131,16 @@ class Waveform(DPT.DPObject):
         ########labels###############
         if not plotOpts['TitleOff']:  # if TitleOff icon in the right-click menu is clicked
             # set the title in this format: channelxxx, fill with zeros if the channel number is not three-digit
-            # .........................................
-            # ..................codes..................
-            # .........................................
-            pass  # you may delete this line
+            y = self.data[i]
+            x = np.arange(y.shape[0])
+            ax.plot(x, y)
+        
+            if not plotOpts['TitleOff']:
+                ax.set_title(self.dirs[i])
+                        
+            if not plotOpts['LabelsOff']:
+                ax.set_xlabel('Time (sample unit)')
+                ax.set_ylabel('Voltage (uV)')
             
         if not plotOpts['LabelsOff']:  # if LabelsOff icon in the right-click menu is clicked
             # set the xlabel and ylabel
