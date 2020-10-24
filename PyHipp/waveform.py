@@ -2,6 +2,8 @@ import DataProcessingTools as DPT
 import matplotlib.pyplot as plt
 import hickle as hkl
 import numpy as np
+import os
+import re
 
 class Waveform(DPT.DPObject):
     # Please change the class name according to your needs
@@ -40,7 +42,9 @@ class Waveform(DPT.DPObject):
         # The following is some hints of the things-to-do:
         
         # read the mountainsort template files
-        templates = hkl.load('templates.hkl')
+        channelid = re.search('(?<=channel)\d+', os.getcwd())[0]
+        template_filename = '../../../mountains/channel{0}/output/templates.hkl'.format(channelid)
+        templates = hkl.load(template_filename)
         self.data = [np.squeeze(templates)]
         
         
@@ -58,9 +62,7 @@ class Waveform(DPT.DPObject):
         # from an extra object (wf) to this object
         # It is useful to store the information of the objects for panning through in the future
         DPT.DPObject.append(self, wf)  # append self.setidx and self.dirs
-        # .........................................
-        # ..................code...................
-        # .........................................
+        self.data = self.data + wf.data
         
     def plot(self, i = None, ax = None, getNumEvents = False, getLevels = False,\
              getPlotOpts = False, overlay = False, **kwargs):
