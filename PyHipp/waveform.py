@@ -116,12 +116,15 @@ class Waveform(DPT.DPObject):
                 elif plot_type == 'Array':
                     return len(self.array_dict), i
             elif self.current_plot_type == 'Array' and plot_type == 'Channel':
-                    # add code to return number of channels and the appropriate
-                    # channel number if the current array number is i
+                # add code to return number of channels and the appropriate
+                # channel number if the current array number is i
+                self.current_plot_type = 'Channel'
+                return self.numSets, i*32+1
             elif self.current_plot_type == 'Channel' and plot_type == 'Array':  
                 # add code to return number of arrays and the appropriate
                 # array number if the current channel number is i
                 self.current_plot_type = 'Array'
+                return len(self.array_dict), i//32
 
 
             
@@ -177,8 +180,8 @@ class Waveform(DPT.DPObject):
             ax.set_ylabel('Voltage (uV)')
     
         if plotOpts['TicksOff'] or (not isCorner):
-    	  ax.set_xticklabels([])
-    	  ax.set_yticklabels([])
+    	    ax.set_xticklabels([])
+    	    ax.set_yticklabels([])
 
     def remove_subplots(self, fig):
         for x in fig.get_axes():  # remove all axes in current figure
