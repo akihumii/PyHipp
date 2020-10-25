@@ -107,24 +107,51 @@ class Waveform(DPT.DPObject):
             self.current_plot_type = plot_type
 
         if getNumEvents:  
-            # this will be called by PanGUI.main to return two values: 
-            # first value is the total number of items to pan through, 
-            # second value is the current index of the item to plot
-            if self.current_plot_type == plot_type:
+            if self.current_plot_type == plot_type:  # no changes to plot_type
                 if plot_type == 'Channel':
                     return self.numSets, i
                 elif plot_type == 'Array':
                     return len(self.array_dict), i
-            elif self.current_plot_type == 'Array' and plot_type == 'Channel':
-                # add code to return number of channels and the appropriate
-                # channel number if the current array number is i
-                self.current_plot_type = 'Channel'
-                return self.numSets, i*32+1
-            elif self.current_plot_type == 'Channel' and plot_type == 'Array':  
-                # add code to return number of arrays and the appropriate
-                # array number if the current channel number is i
-                self.current_plot_type = 'Array'
-                return len(self.array_dict), i//32
+            elif self.current_plot_type == 'Array' and plot_type == 'Channel':  # change from array to channel
+                if i == 0:
+                    return self.numSets, 0
+                else:
+                    # get values in array_dict
+                    advals = np.array([*self.array_dict.values()])
+                    return self.numSets, advals[i-1]+1
+            elif self.current_plot_type == 'Channel' and plot_type == 'Array':  # change from array to channel
+                # get values in array_dict
+                advals = np.array([*self.array_dict.values()])
+                # find index that is larger than i
+                vi = (advals >= i).nonzero()
+                return len(self.array_dict), vi[0][0]
+
+#             # this will be called by PanGUI.main to return two values: 
+#             # first value is the total number of items to pan through, 
+#             # second value is the current index of the item to plot
+#             if self.current_plot_type == plot_type:
+#                 if plot_type == 'Channel':
+#                     return self.numSets, i
+#                 elif plot_type == 'Array':
+#                     return len(self.array_dict), i
+#             elif self.current_plot_type == 'Array' and plot_type == 'Channel':
+#                 # add code to return number of channels and the appropriate
+#                 # channel number if the current array number is i
+#                 # self.current_plot_type = 'Channel'
+#                 # return self.numSets, i*32+1
+#                 if i == 0:
+#                     return self.numSets,0
+#                 else:
+# 					# get values in array_dict
+#                     advals = np.array([*self.array_dict.values()])
+# 					return self.numSets, advals[i-1]+1
+#             elif self.current_plot_type == 'Channel' and plot_type == 'Array':  
+#                 # add code to return number of arrays and the appropriate
+#                 # array number if the current channel number is i
+#                 advals = np.array([*self.array_dict.values()])
+# 				# find index that is larger than i
+# 				vi = (advals >= i).nonzero()
+# 				return len(self.array_dict), vi[0][0]
 
 
             
@@ -140,14 +167,32 @@ class Waveform(DPT.DPObject):
         #################### start plotting ##################################
         ######################################################################
         fig = ax.figure  # get the parent figure of the ax
-        if plot_type == 'Channel':
+        if plot_type == 'Channel':  # plot in channel level
+            if self.current_plot_type == 'Array':
+                self.remove_subplots(fig)
+                ax = fig.add_subplot(1,1,1)
+                
+            # plot the mountainsort data according to the current index 'i'
             self.plot_data(i, ax, plotOpts, 1)
             self.current_plot_type = 'Channel'
-        elif plot_type == 'Array':
+                    
+        elif plot_type == 'Array':  # plot in channel level
+            self.remove_subplots(fig)
+
+            # get values in array_dict
             advals = np.array([*self.array_dict.values()])
-            # set the starting index cstart for array i
-            # set the ending index cend for array i
+            # get first channel, which will be the last index in the previous array plus 1
+            if i == 0:
+                cstart = 0
+                cend = advals[0]
+            else:
+                cstart = advals[i-1] + 1
+                cend = advals[i]
+            
             currch = cstart
+            plotOpts['LabelsOff'] = True
+            plotOpts['TitleOff'] = True
+            plotOpts['TicksOff'] = True
             while currch <= cend :
                 # get channel name
                 currchname = self.dirs[currch]
@@ -155,7 +200,28 @@ class Waveform(DPT.DPObject):
                 ax, isCorner = getChannelInArray(currchname, fig)
                 self.plot_data(currch, ax, plotOpts, isCorner)
                 currch += 1
-            self.current_plot_type = 'Array'
+
+#         if plot_type == 'Channel':
+#             self.plot_data(i, ax, plotOpts, 1)
+#             self.current_plot_type = 'Channel'
+#         elif plot_type == 'Array':
+#             advals = np.array([*self.array_dict.values()])
+#             if i == 0:
+# 				cstart = 0
+# 				cend = advals[0]
+# 			else:
+# 				cstart = advals[i-1] + 1
+# 				cend = advals[i]
+                
+#             currch = cstart
+#             while currch <= cend :
+#                 # get channel name
+#                 currchname = self.dirs[currch]
+#                 # get axis position for channel
+#                 ax, isCorner = getChannelInArray(currchname, fig)
+#                 self.plot_data(currch, ax, plotOpts, isCorner)
+#                 currch += 1
+#             self.current_plot_type = 'Array'
             
         return ax
     
